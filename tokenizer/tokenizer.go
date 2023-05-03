@@ -24,8 +24,10 @@ type Track struct {
 type RawData struct {
 	// Note type assigned to a token.
 	// For example, 0.25 means quarter notes.
-	Resolution float32
-	Tracks     []Track
+	Resolution float64
+	// Beats per minute
+	BPM    float64
+	Tracks []Track
 }
 
 func Tokenize(text []rune) (*RawData, error) {
@@ -61,6 +63,7 @@ func Tokenize(text []rune) (*RawData, error) {
 		)
 	}
 	result.Resolution = 0.25
+	result.BPM = 120
 	result.Tracks = append(result.Tracks, track)
 
 	return result, nil
