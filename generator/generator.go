@@ -10,6 +10,70 @@ import (
 	"github.com/youpy/go-wav"
 )
 
+const (
+	sampleRate = 44100
+)
+
+type sinOscillator struct {
+	frame int
+	freq  float64
+}
+
+func (self *sinOscillator) oscillate() float64 {
+	curFrame := self.frame
+	self.frame++
+	return math.Sin(math.Remainder(float64(curFrame), self.freq) / self.freq * math.Pi * 2)
+}
+
+func (self *sinOscillator) handleEvent(ev tokenizer.Event) {
+	if ev.Type == tokenizer.EventNoteOn {
+		self.frame = 0
+		self.freq = noteNo[ev.Note]
+	}
+}
+
+type envState int
+
+const (
+	envNone envState = iota
+	envAttack
+	envDecay
+	envSustaion
+	envRelease
+)
+
+type envelopeGenerator struct {
+	state envState
+	frame int
+}
+
+func (self *envelopeGenerator) handleEvent(ev tokenizer.Event) {
+	if ev.Type == tokenizer.EventNoteOn {
+		self.state = envAttack
+		self.frame = 0
+	} else if ev.Type == tokenizer.EventNoteOff {
+		self.state = envRelease
+		self.frame = 0
+	}
+}
+
+func (self *envelopeGenerator) filter(src float64) float64 {
+	if self.state == envAttack {
+		self.state = envDecay
+		return src
+	} else if self.state == envDecay {
+		self.state = envSustaion
+		return src
+	} else if self.state == envSustaion {
+		return src
+	} else if self.state == envRelease {
+		self.state = envNone
+		return 0
+	}
+
+	return 0
+}
+
 func getSampleValue(ratio float64) float64 {
 	return math.Sin(ratio * math.Pi * 2.0)
 }
@@ -47,8 +111,11 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 
 	encoder := wav.NewWriter(bufWriter, uint32(length*44100), 2, 44100, 16)
 
+	osc := sinOscillator{}
+	env := envelopeGenerator{}
+
 	framesElapsed := 0
-	curNoteNo := -1
+	// curNoteNo := -1
 	curEventNo := 0
 
 	for i := 0; i < int(length*44100.0); i++ {
@@ -57,11 +124,14 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 			deltaFrame := float64(ev.DeltaTime) * data.Resolution * 4
 			deltaFrame *= 60.0 / float64(data.BPM) * 44100
 			if float64(framesElapsed) >= deltaFrame {
-				if ev.Type == tokenizer.EventNoteOn {
-					curNoteNo = ev.Note
-				} else if ev.Type == tokenizer.EventNoteOff {
-					curNoteNo = -1
-				}
+				osc.handleEvent(ev)
+				env.handleEvent(ev)
+
+				// if ev.Type == tokenizer.EventNoteOn {
+				// 	curNoteNo = ev.Note
+				// } else if ev.Type == tokenizer.EventNoteOff {
+				// 	curNoteNo = -1
+				// }
 				curEventNo++
 				framesElapsed = 0
 			} else {
@@ -69,15 +139,18 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 			}
 		}
 
-		var sampleVal int
-		if curNoteNo < 0 || len(noteNo) <= curNoteNo {
-			sampleVal = 0
-		} else {
-			freq := int(noteNo[curNoteNo])
+		rawSampleVal := env.filter(osc.oscillate())
+		sampleVal := int(rawSampleVal * 32767)
 
-			sampleVal = (int(getSampleValue(calculateRatio(i, 44100, freq))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq/2))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq*2))*32767)) / 3
-			sampleVal = int(float64(sampleVal) * (getSampleValue(calculateRatio(i, 44100, 6))*0.3 + 1.7) / 2.0)
-		}
+		// var sampleVal int
+		// if curNoteNo < 0 || len(noteNo) <= curNoteNo {
+		// 	sampleVal = 0
+		// } else {
+		// 	freq := int(noteNo[curNoteNo])
+
+		// 	sampleVal = (int(getSampleValue(calculateRatio(i, 44100, freq))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq/2))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq*2))*32767)) / 3
+		// 	sampleVal = int(float64(sampleVal) * (getSampleValue(calculateRatio(i, 44100, 6))*0.3 + 1.7) / 2.0)
+		// }
 
 		sample := wav.Sample{}
 
