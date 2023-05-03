@@ -33,7 +33,9 @@ func Generate(data tokenizer.RawData) error {
 	for i := 0; i < 88200; i++ {
 		sample := wav.Sample{}
 
-		sampleVal := (int(getSampleValue(calculateRatio(i, 44100, 261))*32767) + int(getSampleValue(calculateRatio(i, 44100, 130))*32767) + int(getSampleValue(calculateRatio(i, 44100, 522))*32767)) / 3
+		freq := int(noteNo[60])
+
+		sampleVal := (int(getSampleValue(calculateRatio(i, 44100, freq))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq / 2))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq * 2))*32767)) / 3
 		sampleVal = int(float64(sampleVal) * (getSampleValue(calculateRatio(i, 44100, 6))*0.3 + 1.7) / 2.0)
 
 		sample.Values[0] = sampleVal
