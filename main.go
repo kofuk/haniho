@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	rawData, err := tokenizer.Tokenize([]rune("ドレミファソ"))
+	rawData, err := tokenizer.Tokenize([]rune("ドレミファソラシド"))
 	if err != nil {
 		log.Fatal(err)
 	}

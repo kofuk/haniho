@@ -57,15 +57,101 @@ func Test_Tokenize(t *testing.T) {
 				},
 			},
 		},
+		{
+			text: "ド^ドvvド",
+			expect: &RawData{
+				Resolution: 0.25,
+				BPM:        120.0,
+				Tracks: []Track{
+					{
+						Events: []Event{
+							{
+								Type:      EventNoteOn,
+								Note:      60,
+								DeltaTime: 0,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      60,
+								DeltaTime: 1,
+							},
+							{
+								Type:      EventNoteOn,
+								Note:      72,
+								DeltaTime: 0,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      72,
+								DeltaTime: 1,
+							},
+							{
+								Type:      EventNoteOn,
+								Note:      48,
+								DeltaTime: 0,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      48,
+								DeltaTime: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			text: "レbレレ#",
+			expect: &RawData{
+				Resolution: 0.25,
+				BPM:        120.0,
+				Tracks: []Track{
+					{
+						Events: []Event{
+							{
+								Type:      EventNoteOn,
+								Note:      61,
+								DeltaTime: 0,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      61,
+								DeltaTime: 1,
+							},
+							{
+								Type:      EventNoteOn,
+								Note:      62,
+								DeltaTime: 0,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      62,
+								DeltaTime: 1,
+							},
+							{
+								Type:      EventNoteOn,
+								Note:      63,
+								DeltaTime: 0,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      63,
+								DeltaTime: 1,
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testcases {
 		result, _ := Tokenize([]rune(tc.text))
 
-		if math.Abs(result.Resolution - tc.expect.Resolution) > epsilon {
+		if math.Abs(result.Resolution-tc.expect.Resolution) > epsilon {
 			t.Fatalf("Resolution must be %v, but was %v\n", result.Resolution, tc.expect.Resolution)
 		}
-		if math.Abs(result.BPM - tc.expect.BPM) > epsilon {
+		if math.Abs(result.BPM-tc.expect.BPM) > epsilon {
 			t.Fatalf("BPM must be %v, but was %v\n", result.BPM, tc.expect.BPM)
 		}
 

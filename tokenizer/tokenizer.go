@@ -34,28 +34,49 @@ func Tokenize(text []rune) (*RawData, error) {
 	result := &RawData{}
 
 	track := Track{}
+	octaveShift := 3
 	for i := 0; i < len(text); i++ {
 		note := 0
 
 		switch text[i] {
 		case 'ド':
-			note = 60
+			note = 24
 		case 'レ':
-			note = 62
+			note = 26
 		case 'ミ':
-			note = 64
+			note = 28
 		case 'フ':
 			if i+1 < len(text) && text[i+1] == 'ァ' {
 				i++
 			}
-			note = 65
+			note = 29
 		case 'ソ':
-			note = 67
+			note = 31
 		case 'ラ':
-			note = 69
+			note = 33
 		case 'シ':
-			note = 71
+			note = 35
+
+		case '^':
+			octaveShift++
+			continue
+		case 'v':
+			octaveShift--
+			continue
 		}
+
+		if i+1 < len(text) {
+			next := text[i+1]
+			if next == '#' {
+				note++
+				i++
+			} else if next == 'b' {
+				note--
+				i++
+			}
+		}
+
+		note += octaveShift * 12
 
 		track.Events = append(track.Events,
 			Event{Type: EventNoteOn, Note: note, DeltaTime: 0},
