@@ -15,9 +15,9 @@ func Test_Tokenize(t *testing.T) {
 		expect *RawData
 	}{
 		{
-			text: "ドレミ",
+			text: "ドﾚミ",
 			expect: &RawData{
-				Resolution: 0.25,
+				Resolution: 0.125,
 				BPM:        120.0,
 				Tracks: []Track{
 					{
@@ -30,7 +30,7 @@ func Test_Tokenize(t *testing.T) {
 							{
 								Type:      EventNoteOff,
 								Note:      60,
-								DeltaTime: 1,
+								DeltaTime: 2,
 							},
 							{
 								Type:      EventNoteOn,
@@ -50,7 +50,7 @@ func Test_Tokenize(t *testing.T) {
 							{
 								Type:      EventNoteOff,
 								Note:      64,
-								DeltaTime: 1,
+								DeltaTime: 2,
 							},
 						},
 					},
@@ -58,9 +58,9 @@ func Test_Tokenize(t *testing.T) {
 			},
 		},
 		{
-			text: "ド^ドvvド",
+			text: "ド-^ドvvドー",
 			expect: &RawData{
-				Resolution: 0.25,
+				Resolution: 0.125,
 				BPM:        120.0,
 				Tracks: []Track{
 					{
@@ -73,7 +73,7 @@ func Test_Tokenize(t *testing.T) {
 							{
 								Type:      EventNoteOff,
 								Note:      60,
-								DeltaTime: 1,
+								DeltaTime: 3,
 							},
 							{
 								Type:      EventNoteOn,
@@ -83,7 +83,7 @@ func Test_Tokenize(t *testing.T) {
 							{
 								Type:      EventNoteOff,
 								Note:      72,
-								DeltaTime: 1,
+								DeltaTime: 2,
 							},
 							{
 								Type:      EventNoteOn,
@@ -93,7 +93,7 @@ func Test_Tokenize(t *testing.T) {
 							{
 								Type:      EventNoteOff,
 								Note:      48,
-								DeltaTime: 1,
+								DeltaTime: 4,
 							},
 						},
 					},
@@ -103,7 +103,7 @@ func Test_Tokenize(t *testing.T) {
 		{
 			text: "レbレレ#",
 			expect: &RawData{
-				Resolution: 0.25,
+				Resolution: 0.125,
 				BPM:        120.0,
 				Tracks: []Track{
 					{
@@ -116,7 +116,7 @@ func Test_Tokenize(t *testing.T) {
 							{
 								Type:      EventNoteOff,
 								Note:      61,
-								DeltaTime: 1,
+								DeltaTime: 2,
 							},
 							{
 								Type:      EventNoteOn,
@@ -126,7 +126,7 @@ func Test_Tokenize(t *testing.T) {
 							{
 								Type:      EventNoteOff,
 								Note:      62,
-								DeltaTime: 1,
+								DeltaTime: 2,
 							},
 							{
 								Type:      EventNoteOn,
@@ -136,7 +136,7 @@ func Test_Tokenize(t *testing.T) {
 							{
 								Type:      EventNoteOff,
 								Note:      63,
-								DeltaTime: 1,
+								DeltaTime: 2,
 							},
 						},
 					},
