@@ -76,7 +76,7 @@ func Tokenize(text []rune) (*RawData, error) {
 			noteValue = 2
 
 		case 'ﾌ':
-			if i+1 < len(text) && text[i+1] == 'ｱ' {
+			if i+1 < len(text) && text[i+1] == 'ｧ' {
 				i++
 			}
 			note = 29

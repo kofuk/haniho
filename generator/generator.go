@@ -22,7 +22,8 @@ type sinOscillator struct {
 func (self *sinOscillator) oscillate() float64 {
 	curFrame := self.frame
 	self.frame++
-	return math.Sin(math.Remainder(float64(curFrame), self.freq) / self.freq * math.Pi * 2)
+	samplePerCycle := sampleRate / self.freq
+	return math.Sin(math.Remainder(float64(curFrame), samplePerCycle) / samplePerCycle * math.Pi * 2)
 }
 
 func (self *sinOscillator) handleEvent(ev tokenizer.Event) {
