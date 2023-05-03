@@ -45,15 +45,41 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 
 	length := calculateLength(data)
 
-	encoder := wav.NewWriter(bufWriter, uint32(length)*44100, 2, 44100, 16)
+	encoder := wav.NewWriter(bufWriter, uint32(length*44100), 2, 44100, 16)
 
-	for i := 0; i < int(length)*44100; i++ {
+	framesElapsed := 0
+	curNoteNo := -1
+	curEventNo := 0
+
+	for i := 0; i < int(length*44100.0); i++ {
+		if curEventNo < len(data.Tracks[0].Events) {
+			ev := data.Tracks[0].Events[curEventNo]
+			deltaFrame := float64(ev.DeltaTime) * data.Resolution * 4
+			deltaFrame *= 60.0 / float64(data.BPM) * 44100
+			if float64(framesElapsed) >= deltaFrame {
+				if ev.Type == tokenizer.EventNoteOn {
+					curNoteNo = ev.Note
+				} else if ev.Type == tokenizer.EventNoteOff {
+					curNoteNo = -1
+				}
+				curEventNo++
+				framesElapsed = 0
+			} else {
+				framesElapsed++
+			}
+		}
+
+		var sampleVal int
+		if curNoteNo < 0 || len(noteNo) <= curNoteNo {
+			sampleVal = 0
+		} else {
+			freq := int(noteNo[curNoteNo])
+
+			sampleVal = (int(getSampleValue(calculateRatio(i, 44100, freq))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq/2))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq*2))*32767)) / 3
+			sampleVal = int(float64(sampleVal) * (getSampleValue(calculateRatio(i, 44100, 6))*0.3 + 1.7) / 2.0)
+		}
+
 		sample := wav.Sample{}
-
-		freq := int(noteNo[60])
-
-		sampleVal := (int(getSampleValue(calculateRatio(i, 44100, freq))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq/2))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq*2))*32767)) / 3
-		sampleVal = int(float64(sampleVal) * (getSampleValue(calculateRatio(i, 44100, 6))*0.3 + 1.7) / 2.0)
 
 		sample.Values[0] = sampleVal
 		sample.Values[1] = sampleVal
