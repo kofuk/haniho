@@ -35,6 +35,7 @@ func Tokenize(text []rune) (*RawData, error) {
 
 	track := Track{}
 	octaveShift := 3
+	rest := 0
 	for i := 0; i < len(text); i++ {
 		note := 0
 		noteValue := 0
@@ -111,6 +112,14 @@ func Tokenize(text []rune) (*RawData, error) {
 		case 'v':
 			octaveShift--
 			continue
+
+		case 'ッ':
+			rest = 2
+			continue
+
+		case 'ｯ':
+			rest = 1
+			continue
 		}
 
 		for j := i + 1; j < len(text); j++ {
@@ -121,10 +130,10 @@ func Tokenize(text []rune) (*RawData, error) {
 			case '-':
 				noteValue += 1
 
-			case '#':
+			case '#', '♯':
 				note++
 
-			case 'b':
+			case 'b', '♭':
 				note--
 
 			default:
@@ -138,9 +147,10 @@ func Tokenize(text []rune) (*RawData, error) {
 		note += octaveShift * 12
 
 		track.Events = append(track.Events,
-			Event{Type: EventNoteOn, Note: note, DeltaTime: 0},
+			Event{Type: EventNoteOn, Note: note, DeltaTime: rest},
 			Event{Type: EventNoteOff, Note: note, DeltaTime: noteValue},
 		)
+		rest = 0
 	}
 	result.Resolution = 0.125
 	result.BPM = 120

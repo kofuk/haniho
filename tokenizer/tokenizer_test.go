@@ -143,6 +143,49 @@ func Test_Tokenize(t *testing.T) {
 				},
 			},
 		},
+		{
+			text: "ドッﾄﾞｯド",
+			expect: &RawData{
+				Resolution: 0.125,
+				BPM:        120.0,
+				Tracks: []Track{
+					{
+						Events: []Event{
+							{
+								Type:      EventNoteOn,
+								Note:      60,
+								DeltaTime: 0,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      60,
+								DeltaTime: 2,
+							},
+							{
+								Type:      EventNoteOn,
+								Note:      60,
+								DeltaTime: 2,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      60,
+								DeltaTime: 1,
+							},
+							{
+								Type:      EventNoteOn,
+								Note:      60,
+								DeltaTime: 1,
+							},
+							{
+								Type:      EventNoteOff,
+								Note:      60,
+								DeltaTime: 2,
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testcases {
