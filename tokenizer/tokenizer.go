@@ -114,11 +114,11 @@ func Tokenize(text []rune) (*RawData, error) {
 			continue
 
 		case 'ッ':
-			rest = 2
+			rest += 2
 			continue
 
 		case 'ｯ':
-			rest = 1
+			rest += 1
 			continue
 		}
 
