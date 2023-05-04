@@ -24,9 +24,31 @@ func generateSinWaveTable(out io.Writer) {
 	fmt.Fprintln(out, "},")
 }
 
+func generateSawWaveTable(out io.Writer) {
+	fmt.Fprintln(out, "\"saw\": []float64{")
+	for i := 0; i < 2048; i++ {
+		fmt.Fprintf(out, "%f,", float64(i-1024)/1024)
+	}
+	fmt.Fprintln(out, "},")
+}
+
+func generateRectWaveTable(out io.Writer) {
+	fmt.Fprintln(out, "\"rect\": []float64{")
+	for i := 0; i < 2048; i++ {
+		val := -1.0
+		if i < 1024 {
+			val = 1.0
+		}
+		fmt.Fprintf(out, "%f,", val)
+	}
+	fmt.Fprintln(out, "},")
+}
+
 func generateWaveTables(out io.Writer) {
 	fmt.Fprintln(out, "var wavetables = map[string][]float64{")
 	generateSinWaveTable(out)
+	generateSawWaveTable(out)
+	generateRectWaveTable(out)
 	fmt.Fprintln(out, "}")
 }
 

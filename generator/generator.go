@@ -23,6 +23,7 @@ type oscillator struct {
 func newOscillator(waveName string) oscillator {
 	tab, ok := wavetables[waveName]
 	if !ok {
+		log.Printf("Unknown wave %s: fallback to sin\n", waveName)
 		tab = wavetables["sin"]
 	}
 
@@ -163,8 +164,8 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 
 	encoder := wav.NewWriter(bufWriter, uint32(length*44100), 2, 44100, 16)
 
-	osc := newOscillator("sin")
-	env := newEnvelope(0.0, 0.2, 0.0, 0.1)
+	osc := newOscillator("saw")
+	env := newEnvelope(0.0, 0.3, 0.2, 0.1)
 
 	framesElapsed := 0
 	curEventNo := 0
