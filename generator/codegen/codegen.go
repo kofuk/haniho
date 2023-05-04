@@ -16,6 +16,20 @@ var (
 	keyNames = []string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
 )
 
+func generateSinWaveTable(out io.Writer) {
+	fmt.Fprintln(out, "\"sin\": []float64{")
+	for i := 0; i < 2048; i++ {
+		fmt.Fprintf(out, "%f,", math.Sin(float64(i)/2048*2*math.Pi))
+	}
+	fmt.Fprintln(out, "},")
+}
+
+func generateWaveTables(out io.Writer) {
+	fmt.Fprintln(out, "var wavetables = map[string][]float64{")
+	generateSinWaveTable(out)
+	fmt.Fprintln(out, "}")
+}
+
 func generateNoteNoData(out io.Writer) {
 	fmt.Fprintln(out, "var noteNo = []float64{")
 	for d := 0; d < 128; d++ {
@@ -34,6 +48,7 @@ func main() {
 	fmt.Fprintln(out, "package generator;")
 
 	generateNoteNoData(out)
+	generateWaveTables(out)
 
 	outFile, err := os.Create("../data.go")
 	if err != nil {

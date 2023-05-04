@@ -14,19 +14,34 @@ const (
 	sampleRate = 44100
 )
 
-type sinOscillator struct {
-	frame int
-	freq  float64
+type oscillator struct {
+	frame     int
+	freq      float64
+	wavetable []float64
 }
 
-func (self *sinOscillator) oscillate() float64 {
+func newOscillator(waveName string) oscillator {
+	tab, ok := wavetables[waveName]
+	if !ok {
+		tab = wavetables["sin"]
+	}
+
+	return oscillator{
+		frame:     0,
+		freq:      0,
+		wavetable: tab,
+	}
+}
+
+func (self *oscillator) oscillate() float64 {
 	curFrame := self.frame
 	self.frame++
-	samplePerCycle := sampleRate / self.freq
-	return math.Sin(math.Remainder(float64(curFrame), samplePerCycle) / samplePerCycle * math.Pi * 2)
+	samplePerCycle := int(sampleRate / self.freq)
+	curSample := curFrame % samplePerCycle
+	return self.wavetable[curSample*len(self.wavetable)/samplePerCycle]
 }
 
-func (self *sinOscillator) handleEvent(ev tokenizer.Event) {
+func (self *oscillator) handleEvent(ev tokenizer.Event) {
 	if ev.Type == tokenizer.EventNoteOn {
 		self.frame = 0
 		self.freq = noteNo[ev.Note]
@@ -148,7 +163,7 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 
 	encoder := wav.NewWriter(bufWriter, uint32(length*44100), 2, 44100, 16)
 
-	osc := sinOscillator{}
+	osc := newOscillator("sin")
 	env := newEnvelope(0.0, 0.2, 0.0, 0.1)
 
 	framesElapsed := 0
