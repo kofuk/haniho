@@ -44,8 +44,23 @@ const (
 )
 
 type envelopeGenerator struct {
-	state envState
-	frame int
+	state        envState
+	frame        int
+	attackFrame  int
+	decayFrame   int
+	sustainLevel float64
+	releaseFrame int
+}
+
+func newEnvelope(attack, decay, sustain, release float64) envelopeGenerator {
+	return envelopeGenerator{
+		state:        envNone,
+		frame:        0,
+		attackFrame:  int(attack * sampleRate),
+		decayFrame:   int(decay * sampleRate),
+		sustainLevel: sustain,
+		releaseFrame: int(release * sampleRate),
+	}
 }
 
 func (self *envelopeGenerator) handleEvent(ev tokenizer.Event) {
@@ -60,16 +75,37 @@ func (self *envelopeGenerator) handleEvent(ev tokenizer.Event) {
 
 func (self *envelopeGenerator) filter(src float64) float64 {
 	if self.state == envAttack {
-		self.state = envDecay
-		return src
+		p := float64(self.frame) / float64(self.attackFrame)
+
+		if self.frame < self.attackFrame {
+			self.frame++
+		} else {
+			self.frame = 0
+			self.state = envDecay
+		}
+		return src * p
 	} else if self.state == envDecay {
-		self.state = envSustaion
-		return src
+		p := float64(self.frame) / float64(self.decayFrame)
+
+		if self.frame < self.decayFrame {
+			self.frame++
+		} else {
+			self.frame = 0
+			self.state = envSustaion
+		}
+		return src - src*(1.0-self.sustainLevel)*p
 	} else if self.state == envSustaion {
-		return src
+		return src * self.sustainLevel
 	} else if self.state == envRelease {
-		self.state = envNone
-		return 0
+		p := float64(self.frame) / float64(self.decayFrame)
+
+		if self.frame < self.releaseFrame {
+			self.frame++
+		} else {
+			self.frame = 0
+			self.state = envNone
+		}
+		return src * self.sustainLevel * p
 	}
 
 	return 0
@@ -113,10 +149,9 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 	encoder := wav.NewWriter(bufWriter, uint32(length*44100), 2, 44100, 16)
 
 	osc := sinOscillator{}
-	env := envelopeGenerator{}
+	env := newEnvelope(0.0, 0.2, 0.0, 0.1)
 
 	framesElapsed := 0
-	// curNoteNo := -1
 	curEventNo := 0
 
 	for i := 0; i < int(length*44100.0); i++ {
@@ -128,11 +163,6 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 				osc.handleEvent(ev)
 				env.handleEvent(ev)
 
-				// if ev.Type == tokenizer.EventNoteOn {
-				// 	curNoteNo = ev.Note
-				// } else if ev.Type == tokenizer.EventNoteOff {
-				// 	curNoteNo = -1
-				// }
 				curEventNo++
 				framesElapsed = 0
 			} else {
@@ -142,16 +172,6 @@ func Generate(data *tokenizer.RawData, w io.Writer) (err error) {
 
 		rawSampleVal := env.filter(osc.oscillate())
 		sampleVal := int(rawSampleVal * 32767)
-
-		// var sampleVal int
-		// if curNoteNo < 0 || len(noteNo) <= curNoteNo {
-		// 	sampleVal = 0
-		// } else {
-		// 	freq := int(noteNo[curNoteNo])
-
-		// 	sampleVal = (int(getSampleValue(calculateRatio(i, 44100, freq))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq/2))*32767) + int(getSampleValue(calculateRatio(i, 44100, freq*2))*32767)) / 3
-		// 	sampleVal = int(float64(sampleVal) * (getSampleValue(calculateRatio(i, 44100, 6))*0.3 + 1.7) / 2.0)
-		// }
 
 		sample := wav.Sample{}
 
