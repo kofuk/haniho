@@ -15,6 +15,8 @@ import (
 
 func runHttpServer() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("/")
+
 		text := ""
 
 		if r.Method == http.MethodGet {

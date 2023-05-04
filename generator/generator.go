@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"io"
 	"log"
-	"math"
 
 	"github.com/kofuk/haniho/tokenizer"
 	"github.com/youpy/go-wav"
@@ -125,15 +124,6 @@ func (self *envelopeGenerator) filter(src float64) float64 {
 	}
 
 	return 0
-}
-
-func getSampleValue(ratio float64) float64 {
-	return math.Sin(ratio * math.Pi * 2.0)
-}
-
-func calculateRatio(sampleNo, samplePerSec, freq int) float64 {
-	samplePerCycle := samplePerSec / freq
-	return float64(sampleNo%samplePerCycle) / float64(samplePerCycle)
 }
 
 func calculateLength(data *tokenizer.RawData) float64 {
